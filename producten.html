@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>kassa</title>
+    <title>Producten</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb"
         crossorigin="anonymous"></script>
@@ -9,10 +9,12 @@
         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
         crossorigin="anonymous">
+    <script src="https://use.fontawesome.com/60544a87db.js"></script>
 
 </head>
 
 <body>
+    <!-- navigation -->
     <header>
         <nav>
             <ul class="nav nav-tabs">
@@ -42,6 +44,28 @@
             fillTable();
 
         });
+
+        //change index of dropdown 
+        $("#categorie").change(function () {
+            var categorie = $("#categorie option:selected").html();
+            fillTable(categorie);
+        });
+
+        //click on a modify button
+        $(document).on('click', "a.modify", function () {
+            var href = $(this).attr("href"); //gets href from clicked link
+            id = substractIdFromHref(href);
+            alert(id);
+        });
+
+        //click on a delete button
+        $(document).on('click', "a.delete", function () {
+            var href = $(this).attr("href"); //gets href from clicked link
+            id = substractIdFromHref(href);
+            alert(id);
+        });
+
+
         //function to fill dropdown with categories
         function getCategories() {
             var productArray = new Array();
@@ -63,20 +87,53 @@
         }
 
         //function to fill table by selected categorie
-        function fillTable(categorie){
+        function fillTable(categorie) {
+            //clear table
+            clearTable();
+            //fill table
             $.ajax({
                 type: "GET",
                 url: "prijslijst.xml",
                 dataType: "xml",
                 success: function (xml) {
                     $(xml).find('artikel').each(function () {
-                        var title = $(this).find("product").text();
-                        var prijs = $(this).find("prijs").text();
-                        $("<tr></tr>").html("<td>" + title + "</td><td>" + prijs +
-                            "</td>").appendTo("#products");
+                        if (categorie != "Alle" && categorie != null) {
+                            if ($(this).find("soort").text() == categorie) {
+                                addToTable($(this));
+                            }
+                        } else {
+                            addToTable($(this));
+                        }
+
                     });
                 }
             });
+        }
+
+        //function to add a row to the products table from a node's data
+        function addToTable(node) {
+
+            var title = node.find("product").text();
+            var inhoud = node.find("inhoud").text();
+            var prijs = node.find("prijs").text();
+            var id = node.find("id").text();
+            var actions = "<a class='modify fa fa-pencil' href='#" + id +
+                "'></a> <a class='delete fa fa-trash' href='#" + id +
+                "'></a>";
+            $("<tr></tr>").html("<td>" + title + "</td><td>" + inhoud + "</td><td>" + prijs +
+                "</td><td>" + actions + "</td>").appendTo("#products");
+        }
+
+        //function to clear products table and add  header
+        function clearTable() {
+            $("#products").empty();
+            $("<tr></tr>").html("<th>Product</th><th>Inhoud</th><th>Prijs</th><th>Acties</th>").appendTo("#products");
+        }
+
+        //substract the '#' from a href
+        function substractIdFromHref(href) {
+            var id = href.replace("#", "");
+            return id;
         }
     </script>
 

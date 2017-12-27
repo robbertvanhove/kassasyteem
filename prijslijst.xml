@@ -1,30 +1,35 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <root>
 	<artikel>
+		<id>1</id>
 		<product>product1</product>
 		<inhoud>40g</inhoud>
 		<prijs>1.2</prijs>
 		<soort>ijsjes</soort>
 	</artikel>
 	<artikel>
+		<id>2</id>
 		<product>cola</product>
 		<inhoud>1L</inhoud>
 		<prijs>1</prijs>
 		<soort>frisdrank</soort>
 	</artikel>
 	<artikel>
+		<id>3</id>
 		<product>frisk</product>
 		<inhoud></inhoud>
 		<prijs>1.5</prijs>
 		<soort>kauwgom</soort>
 	</artikel>
 	<artikel>
+		<id>4</id>
 		<product>pringles</product>
 		<inhoud></inhoud>
 		<prijs>2.3</prijs>
 		<soort>chips</soort>
 	</artikel>
 	<artikel>
+		<id>5</id>
 		<product>cara</product>
 		<inhoud>0.5 L</inhoud>
 		<prijs>0.8</prijs>
