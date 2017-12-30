@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
         crossorigin="anonymous">
     <script src="https://use.fontawesome.com/60544a87db.js"></script>
-
+    <meta http-equiv="Pragma" content="no-cache">
 </head>
 
 <body>
@@ -37,99 +37,197 @@
         <select id="categorie">
             <option>Alle</option>
         </select>
+        <button type="button" class="fa fa-plus-square btn btn-succes" data-toggle="modal" data-target="#productModal"></button>
     </form>
 
     <table id="products" class="table">
     </table>
 
+    <!-- Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Nieuw product</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <table>
+                            <tr>
+                                <td>Naam:</td>
+                                <td><input id="productNaam" type="text" /></td>
+                            </tr>
+                            <tr>
+                                <td>Inhoud:</td>
+                                <td><input id="productInhoud" type="text" /></td>
+                            </tr>
+                            <tr>
+                                <td>Prijs:</td>
+                                <td><input id="productPrijs" type="text" /></td>
+                            </tr>
+                            <tr>
+                                <td>Soort:</td>
+                                <td><input id="productSoort" type="text" /></td>
+                            </tr>
+
+                        </table>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" id="nieuwProduct" class="btn btn-primary">Toevoegen</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
+        //events
         $(document).ready(function () {
             getCategories();
             fillTable();
 
         });
-
         //change index of dropdown 
         $("#categorie").change(function () {
             var categorie = $("#categorie option:selected").html();
             fillTable(categorie);
         });
+        $("#nieuwProduct").click(function () {
 
-        //click on a modify button
-        $(document).on('click', "a.modify", function () {
-            var href = $(this).attr("href"); //gets href from clicked link
-            id = substractIdFromHref(href);
-            alert(id);
+            var naam = $("#productNaam").val();
+            var inhoud = $("#productInhoud").val();
+            var prijs = $("#productPrijs").val();
+            var soort = $("#productSoort").val();
+            addProduct(naam, inhoud, prijs, soort);
+
         });
-
         //click on a delete button
         $(document).on('click', "a.delete", function () {
             var href = $(this).attr("href"); //gets href from clicked link
             id = substractIdFromHref(href);
-            alert(id);
+            deleteProduct(id);
         });
+        //end of events
+        //-----------------------------------------------------
 
 
-        //function to fill dropdown with categories
+        //functions
+        //gets categories from producten.json
         function getCategories() {
-            var productArray = new Array();
+            $("#categorie").empty();
+            $("#categorie").html("<option>Alle</option>");
             $.ajax({
                 type: "GET",
-                url: "prijslijst.xml",
-                dataType: "xml",
-                success: function (xml) {
+                url: "producten.json",
+                success: function (result) {
+                    var productArray = new Array();
+                    console.log(result);
 
-                    $(xml).find('artikel').each(function () {
-                        var categorie = $(this).find("soort").text();
-                        if (jQuery.inArray(categorie, productArray) == -1) {
-                            $('<option></option>').html(categorie).appendTo('#categorie');
-                            productArray.push(categorie);
+                    for (var i in result) {
+                        var soort = result[i].soort;
+                        console.log(soort);
+                        if ($.inArray(soort, productArray) == -1) {
+
+                            productArray.push(soort);
                         }
-                    });
+                    }
+                    console.log(productArray);
+                    productArray.forEach(function (i) {
+                        $("<option></option>").html(i).appendTo("#categorie");
+                    }, this);
                 }
             });
         }
 
-        //function to fill table by selected categorie
+        //fills table with products from selected categorie (no categorie selected -> all products)
         function fillTable(categorie) {
-            //clear table
-            clearTable();
-            //fill table
             $.ajax({
                 type: "GET",
-                url: "prijslijst.xml",
-                dataType: "xml",
-                success: function (xml) {
-                    $(xml).find('artikel').each(function () {
-                        if (categorie != "Alle" && categorie != null) {
-                            if ($(this).find("soort").text() == categorie) {
-                                addToTable($(this));
-                            }
-                        } else {
-                            addToTable($(this));
-                        }
+                url: "producten.json",
+                success: function (result) {
+                    //reset table
+                    resetTable();
+                    var producten = new Array();
 
-                    });
+                    for (var i in result) {
+                        if (categorie == "Alle" || categorie == null) {
+                            producten.push(result[i]);
+                        } else {
+                            if (categorie == result[i].soort) {
+                                producten.push(result[i]);
+                            }
+                        }
+                    }
+                    console.log(producten);
+
+                    // fil table with products
+                    producten.forEach(function (i) {
+                        //put content in variables
+                        var naam = i.product;
+                        var inhoud = (i.inhoud) ? i.inhoud : "";
+                        var prijs = i.prijs;
+                        var id = i.id;
+
+                        //fill with products
+                        $("<tr></tr>").html("<td>" + naam + "</td><td>" + inhoud + "</td><td>" +
+                            prijs +
+                            "</td><td><a href='#" + id + "' class ='modify fa fa-pencil'></a>" +
+                            " <a href='#" + id +
+                            "' class ='delete fa fa-trash'></a></td>").appendTo("#products");
+                    }, this);
                 }
             });
         }
 
-        //function to add a row to the products table from a node's data
-        function addToTable(node) {
-
-            var title = node.find("product").text();
-            var inhoud = node.find("inhoud").text();
-            var prijs = node.find("prijs").text();
-            var id = node.find("id").text();
-            var actions = "<a class='modify fa fa-pencil' href='#" + id +
-                "'></a> <a class='delete fa fa-trash' href='#" + id +
-                "'></a>";
-            $("<tr></tr>").html("<td>" + title + "</td><td>" + inhoud + "</td><td>" + prijs +
-                "</td><td>" + actions + "</td>").appendTo("#products");
+        //adds product to json file
+        function addProduct(naam, inhoud, prijs, soort) {
+            $.ajax({
+                type: "GET",
+                url: "data.php",
+                data: {
+                    action: 'add',
+                    product: naam,
+                    inhoud: inhoud,
+                    prijs: prijs,
+                    soort: soort
+                },
+                success: function () {
+                    $("#productModal").modal('hide');
+                    getCategories();
+                    fillTable();
+                    clearInput();
+                }
+            });
         }
 
+
+        function deleteProduct(id){
+            $.ajax({
+                type: "GET",
+                url: "data.php",
+                data: {
+                    action: 'delete',
+                    id: id
+                },
+                success: function () {
+                    $("#productModal").modal('hide');
+                    getCategories();
+                    fillTable();
+                }
+            });
+
+        }
+        //end of functions
+        //--------------------------------------------------------------------------
+
+
+
+        //help functions
         //function to clear products table and add  header
-        function clearTable() {
+        function resetTable() {
             $("#products").empty();
             $("<tr></tr>").html("<th>Product</th><th>Inhoud</th><th>Prijs</th><th>Acties</th>").appendTo("#products");
         }
@@ -139,7 +237,13 @@
             var id = href.replace("#", "");
             return id;
         }
+
+        //clears input fields in modal
+        function clearInput(){
+            $("#productModal :input").val("");
+        }
     </script>
+
 
 
 
